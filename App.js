@@ -28,7 +28,7 @@ const App = () => {
       title={item.text}
       image={{ uri: item.uri }}
     >
-      <Text>Hello World</Text>
+      <Text style={{ marginBottom: 10 }}>Hello World</Text>
       <Button
         icon={{ name: 'code' }}
         backgroundColor="#03A9F4"
@@ -42,6 +42,17 @@ const App = () => {
       <Deck
         data={DATA}
         renderCard={renderCard}
+        renderNoMoreCards={() => (
+          <Card title="All Done!">
+            <Text style={{ marginBottom: 10 }}>
+              There is no more content!
+            </Text>
+            <Button
+              backgroundColor="#03A9F4"
+              title="Get more!"
+            />
+          </Card>
+        )}
       />
     </View>
   );

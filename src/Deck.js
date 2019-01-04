@@ -10,6 +10,7 @@ const SWIPE_OUT_DURATION = 250;
 class Deck extends Component {
   constructor(props) {
     super(props);
+    this.state = { index: 0 };
     this.position = new Animated.ValueXY();
     this.panResponder = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -35,7 +36,20 @@ class Deck extends Component {
     Animated.timing(this.position, {
       toValue: { x, y: 0 },
       duration: SWIPE_OUT_DURATION,
-    }).start();
+    }).start(() => this.onSwipeComplete(direction));
+  }
+
+  onSwipeComplete = (direction) => {
+    const { onSwipeLeft, onSwipeRight, data } = this.props;
+    const { index } = this.state;
+    const item = data[index];
+    if (direction === 'right') {
+      onSwipeRight(item);
+    } else {
+      onSwipeLeft(item);
+    }
+    this.position.setValue({ x: 0, y: 0 });
+    this.setState({ index: index + 1 });
   }
 
   resetPosition = () => {
@@ -58,9 +72,12 @@ class Deck extends Component {
   }
 
   renderCards = () => {
-    const { data, renderCard } = this.props;
+    const { data, renderCard, renderNoMoreCards } = this.props;
+    const { index } = this.state;
+
+    if (index >= data.length) return renderNoMoreCards();
     return data.map((x, i) => {
-      if (i === 0) {
+      if (i === index) {
         return (
           <Animated.View
             key={x.id}
@@ -71,6 +88,7 @@ class Deck extends Component {
           </Animated.View>
         );
       }
+      if (i < index) return null;
       return renderCard(x);
     });
   }
@@ -80,9 +98,16 @@ class Deck extends Component {
   }
 }
 
+Deck.defaultProps = {
+  onSwipeLeft: f => f,
+  onSwipeRight: f => f,
+};
 Deck.propTypes = {
   data: PropTypes.instanceOf(Array).isRequired,
   renderCard: PropTypes.func.isRequired,
+  onSwipeLeft: PropTypes.func,
+  onSwipeRight: PropTypes.func,
+  renderNoMoreCards: PropTypes.func.isRequired,
 };
 
 export default Deck;
