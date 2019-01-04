@@ -5,6 +5,8 @@ import {
 import PropTypes from 'prop-types';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
+const SWIPE_OUT_DURATION = 250;
 class Deck extends Component {
   constructor(props) {
     super(props);
@@ -15,8 +17,31 @@ class Deck extends Component {
         const { dx: x, dy: y } = gesture;
         this.position.setValue({ x, y });
       },
-      onPanResponderRelease: f => f,
+      onPanResponderRelease: (event, gesture) => {
+        const { dx, dy } = gesture;
+        if (dx > SWIPE_THRESHOLD) {
+          this.forceSwipe('right');
+        } else if (dy > -SWIPE_THRESHOLD) {
+          this.forceSwipe('left');
+        } else {
+          this.resetPosition();
+        }
+      },
     });
+  }
+
+  forceSwipe = (direction) => {
+    const x = direction === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH;
+    Animated.timing(this.position, {
+      toValue: { x, y: 0 },
+      duration: SWIPE_OUT_DURATION,
+    }).start();
+  }
+
+  resetPosition = () => {
+    Animated.spring(this.position, {
+      toValue: { x: 0, y: 0 },
+    }).start();
   }
 
   getCardStyle = () => {
@@ -51,11 +76,7 @@ class Deck extends Component {
   }
 
   render() {
-    return (
-      <View>
-        {this.renderCards()}
-      </View>
-    );
+    return <View>{this.renderCards()}</View>;
   }
 }
 
